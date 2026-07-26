@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Backend AI Studio | Enterprise Architect Showcase</title>
+  <!-- Google Fonts for Modern Typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Markdown & Code Highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Vanilla Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- TOP HEADER / AUTH ARCHITECT BAR -->
+  <header class="studio-header">
+    <div class="header-brand">
+      <div class="logo-box">⚙️</div>
+      <div class="title-wrap">
+        <h1>RAG Autonomous Studio</h1>
+        <span class="tech-stack-badge">LangGraph • MongoDB Atlas Vector • Redis Cache • Cohere Rerank • BullMQ</span>
+      </div>
+    </div>
+
+    <div class="auth-box">
+      <span id="auth-status">👤 Mode: <strong>Anonymous Guest (Chat Isolated)</strong></span>
+      <button id="btn-show-auth" class="btn-secondary">🔐 Engineer Login / Register</button>
+      <button id="btn-logout" class="btn-danger hidden">Log Out</button>
+    </div>
+  </header>
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <main class="app-container">
+
+    <!-- LEFT SIDEBAR: CHAT SESSIONS & PDF UPLOAD (CHAT-SCOPED ISOLATION) -->
+    <aside class="sidebar">
+      
+      <!-- NEW CONVERSATION BUTTON -->
+      <div class="sidebar-action">
+        <button id="btn-new-chat" class="btn-primary full-width">+ New Conversation</button>
+      </div>
+
+
+
+      <!-- SESSIONS LIST (CHATGPT STYLE!) -->
+      <div class="sessions-section">
+        <h3>💬 Chat Threads (<span id="session-count">0</span>)</h3>
+        <ul id="sessions-list" class="sessions-list">
+          <!-- Dynamically loaded by app.js -->
+        </ul>
+      </div>
+
+    </aside>
+
+    <!-- CENTER CHAT & REASONING INSPECTOR WINDOW -->
+    <section class="chat-main">
+      
+      <!-- CURRENT SESSION HEADER -->
+      <div class="chat-header">
+        <div class="active-chat-info">
+          <h2>Active Thread: <span id="active-chat-title">General Assistant & Web Chat</span></h2>
+          <small class="session-uuid" id="active-session-id">ID: general_default</small>
+        </div>
+        <div class="chat-tools">
+          <span class="status-indicator live">🟢 API Engine Active</span>
+        </div>
+      </div>
+
+      <!-- MESSAGES DISPLAY AREA -->
+      <div id="chat-messages" class="chat-messages">
+        
+        <!-- WELCOME CARD / INTERVIEWER GUIDANCE -->
+        <div class="welcome-banner">
+          <h3>👋 Welcome to Rudra Agrawal's Autonomous RAG System!</h3>
+          <p>This frontend directly demonstrates enterprise backend engineering capabilities:</p>
+          <ul>
+            <li>✨ <strong>Hybrid 2-Stage Retrieval:</strong> Vector Search (MongoDB Atlas) + Cross-Encoder Reranking (Cohere).</li>
+            <li>🌐 <strong>Live Internet Access:</strong> When uploaded documents lack answers, LangGraph autonomously defaults to Tavily live AI search.</li>
+            <li>⚡ <strong>Sub-10ms Memory Caching:</strong> Repeat queries are intelligently intercepted by Redis Cloud memory cache.</li>
+            <li>🔄 <strong>Async Queue Worker Processing:</strong> PDF chunking & Gemini embeddings operate asynchronously via BullMQ workers without blocking Express threads.</li>
+          </ul>
+          <p class="start-hint">👈 Create a conversation, upload a document, or start chatting below!</p>
+        </div>
+
+      </div>
+
+      <!-- INPUT BAR -->
+      <div class="chat-input-wrapper">
+        <!-- BULLMQ WORKER PROGRESS TRACKER (SUPERPOWER SHOWCASE!) -->
+        <div id="worker-tracker" class="worker-tracker hidden" style="margin-bottom: 12px; max-width: 800px; margin-left: auto; margin-right: auto;">
+          <div class="tracker-info">
+            <span class="job-id" id="worker-job-id" style="color: var(--text-secondary);">Uploading...</span>
+            <span class="job-status" id="worker-status-text" style="color: var(--accent-success);">Waiting in Redis...</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="worker-progress-fill" class="progress-fill" style="width: 10%;"></div>
+          </div>
+        </div>
+
+        <!-- Attached Files Tracker -->
+        <div id="attached-files-container" class="attached-files-container" style="display:flex; gap:8px; width: 100%; max-width: 800px; margin-bottom: 8px; flex-wrap: wrap;"></div>
+
+        <form id="chat-form" class="chat-form">
+          <label for="pdf-file" class="btn-attach" title="Attach PDF/Txt Document (Chat Scoped)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            <input type="file" id="pdf-file" name="file" accept=".pdf,.txt" style="display:none;">
+          </label>
+          <textarea id="chat-input" rows="1" placeholder="Message RAG AI... (or attach a PDF)" required></textarea>
+          <button type="submit" id="btn-send" class="btn-send" title="Send Message">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          </button>
+        </form>
+        <div class="input-footer">
+          <span>🛡️ LangGraph Autonomous Agent Enabled | Powered by Gemini Lite High-Speed Engine</span>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- AUTHENTICATION MODAL -->
+  <div id="auth-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modal-title">🔐 Engineer Account Setup</h2>
+        <button id="btn-close-modal" class="btn-close">&times;</button>
+      </div>
+      
+      <div class="modal-tabs">
+        <button id="tab-login" class="tab-btn active">Log In</button>
+        <button id="tab-signup" class="tab-btn">Register New</button>
+      </div>
+
+      <form id="auth-form" class="auth-form">
+        <div id="field-name" class="form-group hidden">
+          <label>Full Name</label>
+          <input type="text" id="input-name" placeholder="Rudra Agrawal">
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="input-email" placeholder="rudra@company.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="input-password" placeholder="••••••••" required minlength="6">
+        </div>
+        <button type="submit" class="btn-primary full-width" id="btn-submit-auth">Authenticate & Save JWT</button>
+      </form>
+      <div id="auth-error-msg" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "name": "rag-backend-js",
+  "version": "1.0.0",
+  "description": "Production-grade cloud-based RAG backend using Node.js, Express, MongoDB Atlas, Redis Cloud, BullMQ, and LangChain/LangGraph.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.2.3",
+    "@langchain/google-genai": "^2.2.0",
+    "@langchain/langgraph": "^1.4.8",
+    "@langchain/mongodb": "^1.3.0",
+    "@langchain/tavily": "^1.2.0",
+    "bcryptjs": "^3.0.3",
+    "bullmq": "^5.8.0",
+    "cohere-ai": "^8.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.4.1",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^2.4.5",
+    "redis": "^4.6.14"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}
