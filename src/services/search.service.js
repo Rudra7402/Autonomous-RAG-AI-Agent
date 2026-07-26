@@ -40,7 +40,7 @@ if (cohereApiKey && cohereApiKey !== 'your_cohere_api_key_here') {
  * When used WITH Cohere: We ask for 15 chunks (broad net).
  * When used WITHOUT Cohere: We ask for 5 chunks (direct to LLM).
  */
-export const vectorSearch = async (query, topK = 5, fileNameFilter = null, sessionId = null) => {
+export const vectorSearch = async (query, topK = 5, fileNameFilter = null, sessionId = null, pageNumberFilter = null) => {
   try {
     // Initialize LangChain's MongoDB Vector Store Wrapper
     const vectorStore = new MongoDBAtlasVectorSearch(embeddings, {
@@ -55,6 +55,7 @@ export const vectorSearch = async (query, topK = 5, fileNameFilter = null, sessi
     const preFilter = {};
     if (fileNameFilter) preFilter['metadata.fileName'] = fileNameFilter;
     if (sessionId) preFilter['metadata.sessionId'] = sessionId;
+    if (pageNumberFilter) preFilter['metadata.pageNumber'] = pageNumberFilter;
     
     const filter = Object.keys(preFilter).length > 0 ? { preFilter } : undefined;
 
@@ -74,6 +75,7 @@ export const vectorSearch = async (query, topK = 5, fileNameFilter = null, sessi
     const filter = {};
     if (fileNameFilter) filter['metadata.fileName'] = fileNameFilter;
     if (sessionId) filter['metadata.sessionId'] = sessionId; // Strict chat isolation!
+    if (pageNumberFilter) filter['metadata.pageNumber'] = pageNumberFilter;
 
     const fallbackDocs = await DocumentChunk.find(filter).limit(topK);
     
@@ -90,19 +92,19 @@ export const vectorSearch = async (query, topK = 5, fileNameFilter = null, sessi
  * ============================================================
  * Now supports Chat-Scoped knowledge filtering via sessionId!
  */
-export const searchWithRerank = async (query, fileNameFilter = null, sessionId = null) => {
+export const searchWithRerank = async (query, fileNameFilter = null, sessionId = null, pageNumberFilter = null) => {
 
   // If Cohere is not configured, fall back to basic vector search
   if (!cohereClient) {
     console.log('[Search Service] Cohere not available. Using basic vector search.');
-    return vectorSearch(query, 5, fileNameFilter, sessionId);
+    return vectorSearch(query, 5, fileNameFilter, sessionId, pageNumberFilter);
   }
 
   try {
     // ---------------------------------------------------------------
     // STAGE 1: Cast a wide net — get 15 candidate chunks from MongoDB
     // ---------------------------------------------------------------
-    const candidateChunks = await vectorSearch(query, 15, fileNameFilter, sessionId);
+    const candidateChunks = await vectorSearch(query, 15, fileNameFilter, sessionId, pageNumberFilter);
     console.log(`[Reranker Stage 1] Retrieved ${candidateChunks.length} candidate chunks from MongoDB.`);
 
     // If MongoDB returned 0 or 1 chunks, no point in reranking
@@ -139,6 +141,6 @@ export const searchWithRerank = async (query, fileNameFilter = null, sessionId =
   } catch (error) {
     // If Cohere API fails for any reason, gracefully fall back
     console.error(`[Reranker Error] Cohere reranking failed: ${error.message}. Falling back to basic search.`);
-    return vectorSearch(query, 5, fileNameFilter, sessionId);
+    return vectorSearch(query, 5, fileNameFilter, sessionId, pageNumberFilter);
   }
 };

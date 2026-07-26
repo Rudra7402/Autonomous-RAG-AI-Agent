@@ -151,6 +151,14 @@ const retrieveNode = async (state) => {
 
   // If the user's latest query is short, combine it with the previous topic so the Vector DB knows what book/context to search!
   let searchQuery = state.query;
+  // Extract page number if user asks for it explicitly
+  let pageNumberFilter = null;
+  const pageMatch = state.query.match(/page\s*(?:no|number)?\s*(\d+)/i);
+  if (pageMatch) {
+    pageNumberFilter = parseInt(pageMatch[1], 10);
+    console.log(`[Agent] 🔍 Detected exact page request: Page ${pageNumberFilter}`);
+  }
+
   if (state.chatHistory && state.query.split(' ').length <= 4) {
     const historyLines = state.chatHistory.split('\n');
     const initialUserTopic = historyLines[historyLines.length - 3] || '';
@@ -159,7 +167,7 @@ const retrieveNode = async (state) => {
   }
 
   // Call our existing 2-Stage Retrieval function with Chat-Scoped knowledge isolation!
-  const documents = await searchWithRerank(searchQuery, state.fileNameFilter, state.sessionId);
+  const documents = await searchWithRerank(searchQuery, state.fileNameFilter, state.sessionId, pageNumberFilter);
 
   console.log(`[Agent] 🔍 Retrieved ${documents.length} chunks from database.`);
 
