@@ -5,11 +5,11 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { uploadDocumentController, getJobStatusController } from './controllers/ingest.controller.js';
-import { 
-  chatController, 
-  getChatSessionsController, 
-  getSessionHistoryController, 
-  deleteSessionController 
+import {
+  chatController,
+  getChatSessionsController,
+  getSessionHistoryController,
+  deleteSessionController
 } from './controllers/chat.controller.js';
 import { signup, login } from './controllers/auth.controller.js';
 import { authMiddleware } from './middleware/auth.middleware.js';
@@ -57,9 +57,9 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://your-production-url.com'] 
-    : '*', 
+  origin: process.env.NODE_ENV === 'production'
+    ? [process.env.FRONTEND_URL || 'https://your-production-url.com']
+    : '*',
   credentials: true,
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS']
 }));

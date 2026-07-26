@@ -47,6 +47,10 @@ const documentChunkSchema = new mongoose.Schema(
         type: Number,
         required: true
       },
+      pageNumber: {
+        type: Number,
+        default: null
+      },
       fileSize: {
         type: Number
       },

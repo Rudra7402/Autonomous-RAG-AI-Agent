@@ -207,6 +207,8 @@ const gradeDocumentsNode = async (state) => {
       You will be given a QUESTION and a DOCUMENT chunk.
       Your job: Does this document chunk contain information that helps answer the question?
       
+      *CRITICAL RULE*: If the user is asking to "summarize", "analyze", "review", or "read" the document, and the chunk contains text from their document (like a resume or report), you MUST answer "yes".
+      
       RESPOND WITH ONLY ONE WORD: "yes" or "no"
       DO NOT explain. Just "yes" or "no".`
     ),
@@ -389,7 +391,7 @@ ${webData}`;
   else {
     console.log(`[Agent] 🤖 Mode: Document Search. Using ${state.documents ? state.documents.length : 0} PDF chunks as context.`);
     const docContext = (state.documents && state.documents.length > 0)
-      ? state.documents.map(doc => doc.content).join('\n\n---\n\n')
+      ? state.documents.map(doc => `[Page: ${doc.metadata?.pageNumber || 'Unknown'}]\n${doc.content}`).join('\n\n---\n\n')
       : 'No matching document chunks found in database.';
 
     systemInstructionText = `You are an elite, highly intelligent RAG (Retrieval-Augmented Generation) assistant.

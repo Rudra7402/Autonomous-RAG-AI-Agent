@@ -30,7 +30,7 @@ const processIngestionJob = async (job) => {
 
     if (mimeType === 'application/pdf' || filePath.endsWith('.pdf')) {
       try {
-        const loader = new PDFLoader(filePath, { splitPages: false });
+        const loader = new PDFLoader(filePath, { splitPages: true });
         docs = await loader.load();
       } catch (err) {
         throw new Error(`Failed to parse PDF. It might be corrupted or password-protected.`);
@@ -45,8 +45,6 @@ const processIngestionJob = async (job) => {
       throw new Error(`Document ${fileName} contains no readable text content.`);
     }
 
-    const fullText = docs.map(d => d.pageContent).join('\n\n');
-
     // Step 2: Split text into chunks with overlap
     job.updateProgress(30);
     const splitter = new RecursiveCharacterTextSplitter({
@@ -54,7 +52,8 @@ const processIngestionJob = async (job) => {
       chunkOverlap: 200     // Overlap characters between chunks to preserve context
     });
 
-    const chunkDocs = await splitter.createDocuments([fullText]);
+    // Split each document page individually to preserve loc.pageNumber metadata
+    const chunkDocs = await splitter.splitDocuments(docs);
     console.log(`[Worker] Document ${fileName} split into ${chunkDocs.length} chunks.`);
 
     // Step 3: Extract chunk text strings and generate embeddings
@@ -75,6 +74,7 @@ const processIngestionJob = async (job) => {
         userId: userId || 'anonymous',
         chunkIndex: index,
         totalChunks: chunkDocs.length,
+        pageNumber: doc.metadata?.loc?.pageNumber || null,
         fileSize,
         mimeType
       }
